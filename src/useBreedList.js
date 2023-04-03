@@ -1,31 +1,34 @@
 import { useState, useEffect } from 'react';
 
+// assign local cache to empty object
 const localCache = {};
 
-export default function useBreedList(animal) {
-  const [breedList, setBreedList] = useState([]);
-  const [status, setStatus] = useState('unloaded');
+const useBreedList = (animal) => {
+  const [breeds, setBreeds] = useState([]);
 
   useEffect(() => {
+    // if no animal param, set breeds to empty array
     if (!animal) {
-      setBreedList([]);
+      setBreeds([]);
+      // if local cache has animal already, use that
     } else if (localCache[animal]) {
-      setBreedList(localCache[animal]);
+      setBreeds(localCache[animal]);
+      // otherwise, invoke generateBreeds function to make api call
     } else {
-      requestBreedList();
+      generateBreeds();
     }
-    function requestBreedList() {
-      setBreedList([]);
-      setStatus('loading');
-
+    function generateBreeds() {
+      setBreeds([]);
       fetch(`https://pets-v2.dev-apis.com/breeds?animal=${animal}`)
         .then((res) => res.json())
-        .then((result) => {
-          localCache[animal] = result.breeds || [];
-          setBreedList(localCache[animal]);
-          setStatus('loaded');
+        .then((res) => {
+          // create key/value for animal in local Cache
+          localCache[animal] = res.breeds || [];
+          setBreeds(res.breeds);
         });
     }
   }, [animal]);
-  return [breedList, status];
-}
+  return [breeds];
+};
+
+export default useBreedList;
